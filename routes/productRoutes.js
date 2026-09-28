@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
   getProducts,
@@ -6,18 +6,18 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-} = require('../controller/productController');
+} = require("../controllers/productController");
 
-const verifyToken = require('../middleware/authMiddleware');
-const upload = require('../middleware/uploadMiddleware');
+const verifyToken = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 // Public Routes
-router.get('/', getProducts);
-router.get('/:id', getProductById);
+router.get("/", getProducts);
+router.get("/:id", getProductById);
 
 // Protected Routes (Butuh Token & Multipart Form Upload)
-router.post('/', verifyToken, upload.single('image'), createProduct);
-router.put('/:id', verifyToken, upload.single('image'), updateProduct);
-router.delete('/:id', verifyToken, deleteProduct);
+router.post("/", verifyToken, upload.single("image"), createProduct);
+router.put("/:id", verifyToken, upload.single("image"), updateProduct);
+router.delete("/:id", verifyToken, deleteProduct);
 
 module.exports = router;
