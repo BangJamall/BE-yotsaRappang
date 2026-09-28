@@ -4,6 +4,7 @@ const path = require("path");
 require("dotenv").config();
 const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,3 +38,4 @@ app.get("/db-test", async (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
