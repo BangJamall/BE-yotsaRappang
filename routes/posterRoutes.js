@@ -7,8 +7,8 @@ const {
   deletePoster,
 } = require('../controllers/posterController');
 
-const verifyToken = require('../middlewares/authMiddleware');
-const upload = require('../middlewares/uploadMiddleware');
+const verifyToken = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 // Public Routes (Bisa diakses langsung oleh Frontend Next.js)
 router.get('/', getPosters);
