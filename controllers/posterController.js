@@ -49,7 +49,7 @@ const getPosterByCategory = async (req, res) => {
 // Jika kategori sudah ada, gambar lama otomatis diganti dengan yang baru
 const upsertPoster = async (req, res) => {
   try {
-    const { title, category, is_active } = req.body;
+    const { title, category, is_active, poster_id } = req.body;
 
     if (!title || !category) {
       if (req.file) deleteImageFile(`/uploads/${req.file.filename}`);
@@ -63,26 +63,42 @@ const upsertPoster = async (req, res) => {
     const newImageUrl = `/uploads/${req.file.filename}`;
     const activeVal = is_active === 'false' || is_active === '0' || is_active === false ? 0 : 1;
 
-    // Cek apakah poster dengan kategori ini sudah ada
-    const [existing] = await db.query('SELECT * FROM posters WHERE category = ?', [category]);
+    if (poster_id) {
+      const [existing] = await db.query('SELECT * FROM posters WHERE id = ?', [poster_id]);
+      if (existing.length === 0) {
+        deleteImageFile(newImageUrl);
+        return res.status(404).json({ success: false, message: 'Poster tidak ditemukan' });
+      }
 
-    if (existing.length > 0) {
-      // Hapus gambar lama dari harddisk host
       deleteImageFile(existing[0].image_url);
-
-      // Update data poster yang sudah ada
       await db.query(
-        'UPDATE posters SET title = ?, image_url = ?, is_active = ? WHERE category = ?',
-        [title, newImageUrl, activeVal, category]
+        'UPDATE posters SET title = ?, category = ?, image_url = ?, is_active = ? WHERE id = ?',
+        [title, category, newImageUrl, activeVal, poster_id]
       );
 
       return res.json({
         success: true,
-        message: `Poster kategori '${category}' berhasil diperbarui!`,
-        data: { id: existing[0].id, title, category, imageUrl: newImageUrl },
+        message: 'Poster berhasil diperbarui!',
+        data: { id: poster_id, title, category, imageUrl: newImageUrl },
       });
     } else {
-      // Buat record poster baru
+      if (category !== 'splash') {
+        const [existing] = await db.query('SELECT * FROM posters WHERE category = ?', [category]);
+        if (existing.length > 0) {
+          deleteImageFile(existing[0].image_url);
+          await db.query(
+            'UPDATE posters SET title = ?, image_url = ?, is_active = ? WHERE category = ?',
+            [title, newImageUrl, activeVal, category]
+          );
+
+          return res.json({
+            success: true,
+            message: `Poster kategori '${category}' berhasil diperbarui!`,
+            data: { id: existing[0].id, title, category, imageUrl: newImageUrl },
+          });
+        }
+      }
+
       const [result] = await db.query(
         'INSERT INTO posters (title, category, image_url, is_active) VALUES (?, ?, ?, ?)',
         [title, category, newImageUrl, activeVal]
