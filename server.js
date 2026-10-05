@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require("multer");
 const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
@@ -44,3 +45,32 @@ app.get("/db-test", async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/posters', posterRoutes);
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  const isMulterError = error instanceof multer.MulterError;
+  const statusCode = isMulterError
+    ? (error.code === 'LIMIT_FILE_SIZE' ? 413 : 400)
+    : error.statusCode || 500;
+  let message = error.message;
+
+  if (statusCode === 500) {
+    message = 'Terjadi kesalahan pada server';
+  } else if (isMulterError) {
+    message = error.code === 'LIMIT_FILE_SIZE'
+      ? 'Ukuran gambar maksimal 5 MB.'
+      : 'Permintaan upload gambar tidak valid.';
+  }
+
+  if (statusCode >= 500) {
+    console.error('Error middleware:', error);
+  }
+
+  return res.status(statusCode).json({
+    success: false,
+    message,
+  });
+});
