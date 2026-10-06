@@ -42,6 +42,10 @@ const verifyTurnstile = async (req, res, next) => {
 
     const result = await response.json();
     if (result.success !== true) {
+      const errorCodes = Array.isArray(result['error-codes'])
+        ? result['error-codes'].join(', ')
+        : 'no error codes returned';
+      console.warn(`Turnstile verification rejected the token: ${errorCodes}.`);
       return res.status(403).json({
         success: false,
         message: 'Verifikasi Turnstile gagal atau kedaluwarsa. Silakan coba lagi.',
